@@ -1,0 +1,13 @@
+{
+  "os": "Android (Latest Version)",
+  "resolution": "1440x3440",
+  "density_ppi": 507,
+  "cpu": "Snapdragon 8 Elite",
+  "gpu": "Adreno 830",
+  "storage_rom": "1 TB",
+  "ram": "16 GB",
+  "battery_capacity": "7950 mAh",
+  "refresh_rate": "165 Hz",
+  "bluetooth": "5.4",
+  "charging_speed": "55W"
+}

@@ -1,0 +1,30 @@
+name: Test Emulator
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-emulator:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup ADB
+        run: sudo apt install adb -y
+
+      - name: Connect to Cloud Phone
+        run: bash bash/cloud-connect.sh
+
+      - name: Benchmark ROM & RAM
+        run: bash scripts/cloud-benchmark.sh
+
+      - name: Run Performance Test (FPS, Temp, CPU)
+        run: bash scripts/performance-test.sh
+
+      - name: Upload Test Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: afkpal-cloud-phone-logs
+          path: logs/

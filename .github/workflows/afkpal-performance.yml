@@ -1,1 +1,30 @@
 
+name: AFKPal Performance Management
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Enable Boost Mode
+        run: |
+          echo "Activating AFKPal Boost Mode..."
+          ./scripts/analyze-performance.sh --mode boost
+
+      - name: Enable Overclock Mode
+        run: |
+          echo "Activating AFKPal Overclock Mode..."
+          ./scripts/analyze-performance.sh --mode overclock
+
+      - name: FPS Monitoring
+        run: |
+          echo "Monitoring FPS..."
+          ./scripts/fps-monitor.sh

@@ -5,6 +5,6 @@ device:
   cpu: Snapdragon-8-Elite
   gpu: Adreno-830
   refresh_rate: 165
-  android_version: Latest
+  android_version: 16
   density: 507
   resolution: 1440x3440

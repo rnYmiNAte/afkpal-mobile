@@ -1,0 +1,68 @@
+name: AFKPal All-in-One Cloud Phone Automation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  afkpal-full:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install ADB & Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y adb bc
+
+      - name: Connect Cloud Phone
+        run: |
+          bash scripts/adb-connect.sh
+
+      - name: Gather Device Stats
+        run: |
+          mkdir -p logs
+          RAM=$(adb shell cat /proc/meminfo | grep MemTotal | awk '{print $2}')
+          BATTERY=$(adb shell dumpsys battery | grep level | awk '{print $2}')
+          TEMP=$(adb shell dumpsys thermalservice | grep -m 1 temperature | awk '{print $2}')
+
+          echo "RAM=$RAM" > logs/device_stats.txt
+          echo "BATTERY=$BATTERY" >> logs/device_stats.txt
+          echo "TEMP=$TEMP" >> logs/device_stats.txt
+
+          echo "Device Stats:"
+          cat logs/device_stats.txt
+
+      - name: Auto Mode Selection
+        run: |
+          source logs/device_stats.txt
+
+          if [ "$RAM" -ge 15000000 ] && [ "$BATTERY" -ge 50 ] && [ "$TEMP" -lt 48000 ]; then
+            echo "✅ Gaming Mode Activated"
+            bash scripts/afkpal-gaming-mode.sh
+          elif [ "$RAM" -ge 12000000 ] && [ "$BATTERY" -ge 35 ]; then
+            echo "⚡ Performance Boost Mode Activated"
+            bash scripts/performance-boost-mode.sh
+          elif [ "$BATTERY" -ge 50 ] && [ "$TEMP" -lt 45000 ]; then
+            echo "🔥 Overclock Mode Activated"
+            bash scripts/afkpal-overclock-mode.sh
+          else
+            echo "⚠ Defaulting to Performance Boost Mode"
+            bash scripts/performance-boost-mode.sh
+          fi
+
+      - name: Run FPS Monitor (Background)
+        run: |
+          nohup bash scripts/fps-monitor.sh &
+
+      - name: Run CPU Stress Test
+        run: bash scripts/cpu-stress-test.sh
+
+      - name: Run AI Prediction
+        run: bash scripts/ai-prediction.sh
+
+      - name: Upload Logs & Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: afkpal-all-in-one-logs
+          path: logs/

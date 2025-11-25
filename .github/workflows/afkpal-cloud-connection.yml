@@ -1,0 +1,28 @@
+name: AFKPal Cloud Connection
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  connect-cloud-phone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Initialize Cloud Phone Connection
+        run: |
+          echo "Connecting AFKPal to cloud phone..."
+          ./scripts/initialize-cloud.sh
+
+      - name: Sync Device Specifications
+        run: |
+          echo "Syncing device specs..."
+          ./scripts/sync-specs.sh
+
+      - name: Confirm Connection
+        run: |
+          echo "AFKPal is now connected to Cloud Phone."

@@ -1,4 +1,4 @@
-lname: Cloud Phone Discharging
+name: Cloud Phone Discharging
 
 on:
   workflow_dispatch:

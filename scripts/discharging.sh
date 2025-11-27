@@ -1,17 +1,27 @@
 #!/bin/bash
-# discharging.sh - Discharge battery safely
+# discharging.sh - Discharge battery safely via ADB over network
 
-echo "🔋 Starting battery discharging process..."
+CLOUD_PHONE_IP="YOUR_CLOUD_PHONE_IP:5555"
 
-# Reset charging status (simulate discharging)
+# Ensure connection
+adb connect $CLOUD_PHONE_IP
+
+if adb devices | grep -q "$CLOUD_PHONE_IP"; then
+    echo "🔋 Connected. Starting discharging..."
+else
+    echo "❌ Could not connect. Abort discharging."
+    exit 1
+fi
+
+# Disable all charging sources
 adb shell dumpsys battery set ac 0
 adb shell dumpsys battery set usb 0
 adb shell dumpsys battery set wireless 0
 
-# Optional: Set battery level for test
+# Optional: set battery level for testing
 # adb shell dumpsys battery set level 20
 
-# Show battery stats
+# Show battery status
 adb shell dumpsys battery
 
-echo "✔ Battery discharging mode enabled!"
+echo "✔ Discharging mode enabled!"

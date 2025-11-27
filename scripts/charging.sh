@@ -1,22 +1,26 @@
 #!/bin/bash
-# charging.sh - Enable 55W fast charging mode on cloud phone
+# charging.sh - Enable 55W fast charging via ADB over network
 
-echo "⚡ Initiating 55W charging mode..."
+CLOUD_PHONE_IP="YOUR_CLOUD_PHONE_IP:5555"
 
-# Ensure ADB is connected
-adb devices
+# Ensure connection
+adb connect $CLOUD_PHONE_IP
 
-# Enable AC + USB charging (high power)
+if adb devices | grep -q "$CLOUD_PHONE_IP"; then
+    echo "⚡ Connected to cloud phone. Starting 55W charging..."
+else
+    echo "❌ Could not connect. Abort charging."
+    exit 1
+fi
+
+# Enable AC + USB charging
 adb shell dumpsys battery set ac 1
 adb shell dumpsys battery set usb 1
 
-# Disable wireless charging if active
+# Disable wireless charging
 adb shell dumpsys battery set wireless 0
 
-# Optional: Set battery level test (remove if not needed)
-# adb shell dumpsys battery set level 80
-
-# Optional: Show detailed battery stats
+# Show battery status
 adb shell dumpsys battery
 
-echo "✔ Fast charging enabled successfully!"
+echo "✔ Charging enabled successfully!"

@@ -1,23 +1,24 @@
-name: Charging 55W
+name: Cloud Phone Charging
 
 on:
   workflow_dispatch:
 
 jobs:
-  charging:
+  charge:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Ensure ADB is installed
+      - name: Start Charging
         run: |
-          sudo apt-get update
-          sudo apt-get install -y adb
+          echo "Initializing charging sequence..."
+          chmod +x scripts/battery/charging_control.sh
+          bash scripts/battery/charging_control.sh
 
-      - name: Make charging script executable
-        run: chmod +x scripts/charging.sh
-
-      - name: Run Charging Script
-        run: bash scripts/charging.sh
+      - name: Charger Status
+        run: |
+          echo "Charger: 55W / 5V"
+          echo "Battery Capacity: 7950 mAh"

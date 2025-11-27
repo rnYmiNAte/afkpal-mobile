@@ -1,22 +1,20 @@
 #!/bin/bash
-# boot.sh - Connect and boot cloud phone
+# boot.sh - Connect and boot cloud phone via ADB over network
 
-echo "🔄 Connecting to cloud phone..."
+# Replace with your cloud phone IP (and port, usually 5555)
+CLOUD_PHONE_IP="YOUR_CLOUD_PHONE_IP:5555"
 
-# Check if ADB is available
-if ! command -v adb &> /dev/null
-then
-    echo "❌ ADB not found. Install ADB first."
+echo "🔄 Connecting to cloud phone at $CLOUD_PHONE_IP..."
+adb connect $CLOUD_PHONE_IP
+
+# Verify device is connected
+if adb devices | grep -q "$CLOUD_PHONE_IP"; then
+    echo "✔ Cloud phone connected successfully!"
+else
+    echo "❌ Failed to connect to cloud phone. Check IP and network."
     exit 1
 fi
 
-# Connect to cloud phone
-adb start-server
-adb devices
-
-# Optional: Wake up phone if asleep
+# Wake up phone if asleep
 adb shell input keyevent 26  # Power button
 adb shell input keyevent 82  # Unlock screen
-
-echo "✔ Cloud phone booted and connected successfully!"
-

@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
+  charge:
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3

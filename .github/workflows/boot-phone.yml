@@ -6,8 +6,18 @@ on:
 jobs:
   boot-phone:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Connect to Cloud Phone
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Ensure ADB is installed
         run: |
-          echo "Connecting to Cloud Phone..."
-          adb devices
+          sudo apt-get update
+          sudo apt-get install -y adb
+
+      - name: Make boot script executable
+        run: chmod +x scripts/boot.sh
+
+      - name: Run Boot Script
+        run: bash scripts/boot.sh

@@ -4,10 +4,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  charge:
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3

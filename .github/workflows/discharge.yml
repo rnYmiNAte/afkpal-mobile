@@ -1,0 +1,13 @@
+name: Discharging Battery
+
+on:
+  workflow_dispatch:
+
+jobs:
+  discharging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Begin Discharging
+        run: |
+          echo "Discharging battery..."
+          adb shell dumpsys battery reset

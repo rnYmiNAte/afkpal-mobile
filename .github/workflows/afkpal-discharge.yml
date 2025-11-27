@@ -1,0 +1,11 @@
+name: AFKPal Discharging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  discharge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discharging Simulation
+        run: bash bash/discharging.sh

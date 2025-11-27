@@ -1,0 +1,14 @@
+name: AFKPal Boot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  boot-phone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Boot Cloud Phone
+        run: bash bash/boot_phone.sh

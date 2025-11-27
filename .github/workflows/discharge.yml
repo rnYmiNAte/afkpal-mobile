@@ -6,8 +6,18 @@ on:
 jobs:
   discharging:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Begin Discharging
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Ensure ADB is installed
         run: |
-          echo "Discharging battery..."
-          adb shell dumpsys battery reset
+          sudo apt-get update
+          sudo apt-get install -y adb
+
+      - name: Make discharging script executable
+        run: chmod +x scripts/discharging.sh
+
+      - name: Run Discharging Script
+        run: bash scripts/discharging.sh

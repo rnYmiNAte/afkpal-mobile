@@ -1,0 +1,13 @@
+name: Charging 55W
+
+on:
+  workflow_dispatch:
+
+jobs:
+  charging:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start 55W Charging
+        run: |
+          echo "Initiating 55W charging..."
+          adb shell dumpsys battery set ac 1

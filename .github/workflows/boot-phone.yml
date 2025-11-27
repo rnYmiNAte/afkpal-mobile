@@ -1,0 +1,13 @@
+name: Boot Cloud Phone
+
+on:
+  workflow_dispatch:
+
+jobs:
+  boot-phone:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to Cloud Phone
+        run: |
+          echo "Connecting to Cloud Phone..."
+          adb devices

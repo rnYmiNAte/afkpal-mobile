@@ -6,8 +6,26 @@ on:
 jobs:
   charging:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Start 55W Charging
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Ensure ADB is installed
         run: |
-          echo "Initiating 55W charging..."
-          adb shell dumpsys battery set ac 1
+          sudo apt-get update
+          sudo apt-get install -y adb
+
+      - name: Make charging script executable
+        run: |
+          chmod +x scripts/charging.sh
+
+      - name: Run Charging Script
+        run: |
+          echo "🔌 Starting 55W charging process..."
+          bash scripts/charging.sh
+
+      - name: Verify Battery Status
+        run: |
+          echo "📊 Checking battery info..."
+          adb shell dumpsys battery

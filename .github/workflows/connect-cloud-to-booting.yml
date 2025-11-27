@@ -1,0 +1,17 @@
+name: Connect Cloud Phone to Booting
+
+on:
+  workflow_dispatch:
+
+jobs:
+  boot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Boot Cloud Phone
+        run: |
+          chmod +x scripts/boot/connect_cloud_boot.sh
+          bash scripts/boot/connect_cloud_boot.sh

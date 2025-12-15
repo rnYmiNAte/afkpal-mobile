@@ -1,1 +1,73 @@
+name: Discharging
 
+on:
+  workflow_dispatch:
+    inputs:
+      device_id:
+        description: Cloud Phone device ID
+        required: true
+  schedule:
+    - cron: "0 3 * * *"
+
+env:
+  DEVICE_PROFILE_PATH: device-profile.json
+
+jobs:
+  discharging:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Reserve Cloud Phone
+        id: reserve
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"device_id":"${{ github.event.inputs.device_id }}","ttl_minutes":120}' \
+            "https://api.cloudphone.example.com/v1/devices/reserve" > reserve.json
+          echo "session_id=$(jq -r '.session_id' reserve.json)" >> $GITHUB_OUTPUT
+
+      - name: Connect ADB
+        run: |
+          sudo apt-get update && sudo apt-get install -y adb
+          ADB_ENDPOINT=$(jq -r '.adb_endpoint' reserve.json)
+          adb connect "$ADB_ENDPOINT"
+          adb wait-for-device
+
+      - name: Baseline battery
+        run: |
+          adb shell dumpsys battery > battery_baseline.txt
+          cat battery_baseline.txt
+
+      - name: High-load discharge (CPU+GPU+display 165 Hz)
+        timeout-minutes: 60
+        run: |
+          # Display to 165 Hz if supported
+          adb shell service call SurfaceFlinger 103 i32 165 || true
+          # CPU load
+          adb shell "while true; do :; done" &
+          CPU_PID=$!
+          # GPU load via GL benchmark app or simple shader demo (placeholder)
+          adb shell am start -n com.example.gpu/.BenchActivity || true
+          # Network load to simulate real usage
+          adb shell "while true; do ping -c 5 8.8.8.8; sleep 5; done" &
+          NET_PID=$!
+          sleep 1800
+          kill $CPU_PID $NET_PID || true
+
+      - name: Battery after discharge
+        run: |
+          adb shell dumpsys battery > battery_after.txt
+          cat battery_after.txt
+
+      - name: Release Cloud Phone
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"session_id":"${{ steps.reserve.outputs.session_id }}"}' \
+            "https://api.cloudphone.example.com/v1/devices/release"

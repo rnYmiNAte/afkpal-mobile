@@ -1,1 +1,59 @@
+name: Booting (Cloud Phone)
 
+on:
+  workflow_dispatch:
+    inputs:
+      device_id:
+        description: Cloud Phone device ID
+        required: true
+  push:
+    paths:
+      - ".github/workflows/booting.yml"
+
+jobs:
+  booting:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Reserve Cloud Phone
+        id: reserve
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"device_id":"${{ github.event.inputs.device_id }}","ttl_minutes":45}' \
+            "https://api.cloudphone.example.com/v1/devices/reserve" > reserve.json
+          echo "session_id=$(jq -r '.session_id' reserve.json)" >> $GITHUB_OUTPUT
+
+      - name: Connect ADB
+        run: |
+          sudo apt-get update && sudo apt-get install -y adb
+          ADB_ENDPOINT=$(jq -r '.adb_endpoint' reserve.json)
+          adb connect "$ADB_ENDPOINT"
+
+      - name: Ensure boot complete
+        run: |
+          adb wait-for-device
+          TIMEOUT=180
+          until adb shell getprop sys.boot_completed | grep -q "1"; do
+            sleep 3
+            TIMEOUT=$((TIMEOUT-3))
+            if [ $TIMEOUT -le 0 ]; then
+              echo "Boot timed out"
+              exit 1
+            fi
+          done
+          adb shell settings get global device_name || true
+          adb shell getprop ro.build.version.release
+
+      - name: Release Cloud Phone
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"session_id":"${{ steps.reserve.outputs.session_id }}"}' \
+            "https://api.cloudphone.example.com/v1/devices/release"

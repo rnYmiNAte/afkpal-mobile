@@ -1,0 +1,24 @@
+{
+  "os": "Android 16 (Baklava)",
+  "resolution": "1440x3440",
+  "density_ppi": 507,
+  "soc": {
+    "cpu": "Snapdragon 8 Elite",
+    "gpu": "Adreno 830"
+  },
+  "battery": {
+    "capacity_mAh": 7950,
+    "fast_charge_power_W": 55,
+    "nominal_voltage_V": 3.85
+  },
+  "display": {
+    "refresh_rate_Hz": 165
+  },
+  "connectivity": {
+    "bluetooth": "5.4"
+  },
+  "memory": {
+    "rom_GB": 1000,
+    "ram_GB": 16
+  }
+}

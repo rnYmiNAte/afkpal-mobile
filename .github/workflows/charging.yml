@@ -1,0 +1,76 @@
+name: Charging
+
+on:
+  workflow_dispatch:
+    inputs:
+      device_id:
+        description: Cloud Phone device ID
+        required: true
+  push:
+    paths:
+      - "scripts/charger.sh"
+      - ".github/workflows/charging.yml"
+      - "device-profile.json"
+
+env:
+  DEVICE_PROFILE_PATH: device-profile.json
+
+jobs:
+  charging:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse device profile
+        id: profile
+        run: |
+          CAPACITY_MAH=$(jq -r '.battery.capacity_mAh' "$DEVICE_PROFILE_PATH")
+          POWER_W=$(jq -r '.battery.fast_charge_power_W' "$DEVICE_PROFILE_PATH")
+          VOLTAGE_V=$(jq -r '.battery.nominal_voltage_V' "$DEVICE_PROFILE_PATH")
+          echo "capacity_mAh=$CAPACITY_MAH" >> $GITHUB_OUTPUT
+          echo "power_W=$POWER_W" >> $GITHUB_OUTPUT
+          echo "voltage_V=$VOLTAGE_V" >> $GITHUB_OUTPUT
+
+      - name: Reserve Cloud Phone
+        id: reserve
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"device_id":"${{ github.event.inputs.device_id }}","ttl_minutes":60}' \
+            "https://api.cloudphone.example.com/v1/devices/reserve" > reserve.json
+          echo "session_id=$(jq -r '.session_id' reserve.json)" >> $GITHUB_OUTPUT
+          test "$(jq -r '.status' reserve.json)" = "reserved"
+
+      - name: Connect ADB
+        run: |
+          sudo apt-get update && sudo apt-get install -y adb jq
+          ADB_ENDPOINT=$(jq -r '.adb_endpoint' reserve.json)
+          adb connect "$ADB_ENDPOINT"
+          adb wait-for-device
+          adb shell getprop ro.build.version.release
+
+      - name: Start charging test
+        run: |
+          chmod +x scripts/charger.sh
+          scripts/charger.sh \
+            --capacity-mAh "${{ steps.profile.outputs.capacity_mAh }}" \
+            --power-W "${{ steps.profile.outputs.power_W }}" \
+            --voltage-V "${{ steps.profile.outputs.voltage_V }}" \
+            --session-id "${{ steps.reserve.outputs.session_id }}"
+
+      - name: Collect battery stats
+        run: |
+          adb shell dumpsys battery > battery_after.txt
+          cat battery_after.txt
+
+      - name: Release Cloud Phone
+        if: always()
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.CLOUD_PHONE_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{"session_id":"${{ steps.reserve.outputs.session_id }}"}' \
+            "https://api.cloudphone.example.com/v1/devices/release"
